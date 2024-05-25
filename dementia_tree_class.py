@@ -208,7 +208,7 @@ class Customtree:
     def trainandtest(self):
 
         X_train, X_test, y_train, y_test = self.separate_data()
-        if self.trainParam['optimize']:
+        if self.trainParam['optimize'] == 'True':
             param_dist = {'n_estimators': np.arange(60, self.trainParam['estimators'], 20,dtype= int),
                           'max_depth': np.arange(2, self.trainParam['max_depth'])}
             print(param_dist)
@@ -226,7 +226,7 @@ class Customtree:
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         fn = X_train.columns
-        if self.trainParam['plot']:
+        if self.trainParam['plot'] == 'True':
             for i in range(3):
                 fig, axes = plt.subplots(nrows=1, ncols=1, figsize=(4, 4), dpi=600)
                 tree.plot_tree(clf.estimators_[i],
