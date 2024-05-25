@@ -1,0 +1,6 @@
+{
+    "docify.commentService.programmingLanguage": "python",
+    "docify.commentService.docstringFormat": "Google",
+    "docify.commentService.sidePanelReviewMode": false,
+    "docify.commentService.inlineComments": false
+}
