@@ -222,7 +222,7 @@ class Customtree:
             clf = rand_search.best_estimator_
         else:
             clf = RandomForestClassifier(
-                n_stimators=self.trainParam['estimators'], max_depth=self.trainParam['max_depth'], criterion=self.trainParam['criterion'])
+                n_estimators=self.trainParam['estimators'], max_depth=self.trainParam['max_depth'], criterion=self.trainParam['criterion'])
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         fn = X_train.columns
