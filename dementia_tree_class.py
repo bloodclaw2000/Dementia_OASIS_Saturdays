@@ -134,7 +134,7 @@ class Customtree:
     def create_params_file(self):
        
         paramsdrop = []
-        paramsdrop.append(['ID', 'CDR','MMSE', 'Delay', 'USE', 'Hand'])
+        paramsdrop.append(['ID', 'CDR','MMSE', 'Delay', 'USE', 'Hand','Dementia'])
 
         if self.trainParam['use_identifying_data'] == 'False':
             print('lala')
@@ -200,6 +200,7 @@ class Customtree:
 
         X_train = dropparameters(df_train, self.ParamsDrop)
         X_test = dropparameters(df_test, self.ParamsDrop)
+        
         y_train = df_train['Dementia']
         y_test = df_test['Dementia']
         return X_train, X_test, y_train, y_test
