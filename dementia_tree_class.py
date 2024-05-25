@@ -141,27 +141,27 @@ class Customtree:
             paramsdrop.append(['Age', 'M/F', 'Educ', 'SES'])
         else:
             if self.trainParam['age'] == 'False':
-                paramsdrop.append['Age']
+                paramsdrop.append('Age')
             if self.trainParam['sex'] == 'False':
-                paramsdrop.append['M/F']
+                paramsdrop.append('M/F')
             if self.trainParam['education'] == 'False':
-                paramsdrop.append['Educ']
+                paramsdrop.append('Educ')
             if self.trainParam['economy'] == 'False':
-                paramsdrop.append['SES']
+                paramsdrop.append('SES')
         if self.trainParam['use_mri_data'] == 'False':
             paramsdrop.append(['PRED_FSL', 'PRED_RAW_1',
                               'PRED_RAW_2', 'PRED_RAW_3', 'PRED_T88'])
         else:
             if self.trainParam['FSL'] == 'False':
-                paramsdrop.append['PRED_FSL']
+                paramsdrop.append('PRED_FSL')
             if self.trainParam['T88'] == 'False':
-                paramsdrop.append['PRED_T88']
+                paramsdrop.append('PRED_T88')
             if self.trainParam['RAW_1'] == 'False':
                 paramsdrop.append['PRED_RAW_1']
             if self.trainParam['RAW_2'] == 'False':
-                paramsdrop.append['PRED_RAW_2']
+                paramsdrop.append('PRED_RAW_2')
             if self.trainParam['RAW_3'] == 'False':
-                paramsdrop.append['PRED_RAW_3']
+                paramsdrop.append('PRED_RAW_3')
 
         if self.trainParam['use_brain_size_data'] == 'False':
             paramsdrop.append(['eTIV', 'ASF', 'nWBV'])
