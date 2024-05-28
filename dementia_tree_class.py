@@ -235,18 +235,20 @@ class Customtree:
                                filled=True,
                                impurity=True
                                )
-                fig.savefig(f'plottreefncn{i}.png')
+                fig.savefig(f'plots/plottreefncn{i}.png')
                 plt.figure()
             cm = confusion_matrix(y_test, y_pred)
             ConfusionMatrixDisplay(confusion_matrix=cm).plot()
+            plt.savefig('plots/forest_confusion_matrix')
             plt.show()
             # Create a series containing feature importances from the model and feature names from the training data
             feature_importances = pd.Series(
                 clf.feature_importances_, index=X_train.columns).sort_values(ascending=False)
-            plt.show()
             # Plot a simple bar chart
             feature_importances.plot.bar()
-            
+            plt.savefig('plots/feature_importance',bbox_inches='tight')
+            plt.show()
+
         accuracy = accuracy_score(y_test, y_pred)
 
         precision = precision_score(y_test, y_pred)

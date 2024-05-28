@@ -164,7 +164,7 @@ class Net(nn.Module):
 
             torch.nn.init.xavier_uniform_(self.fc3.weight)
 
-    def forward(self, x):
+    def forward(self, x, verbosity = 1):
         # print('Lay1 Shape: {}'.format(x.shape))
         x = self.layer1(x)  # apply the first conv layer
         # print('Conv1 Shape: {}'.format(x.shape))
@@ -182,7 +182,7 @@ class Net(nn.Module):
             x = self.fc2(x)  # apply second fully conv layer
         x = self.fc3(x)
         # x = self.fc3(x)
-
+    
         return x
 
 

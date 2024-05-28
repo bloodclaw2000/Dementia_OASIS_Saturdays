@@ -15,7 +15,9 @@ def pet_save(pet, filename):
 
 def pet_load(file):
     # pickle.load(open(f"/content/drive/MyDrive/grupo1-saturdaysAI/data/image_data.p", "rb"))
-    return pickle.load(open(file, "rb"))
+    with open(file, 'rb') as f:   # will close() when we leave this block
+        pickled = pickle.load(f)
+    return pickled
 
 
 def decompress_pickle(file):

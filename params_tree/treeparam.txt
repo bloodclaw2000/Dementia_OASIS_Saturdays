@@ -1,15 +1,11 @@
-#this is a comment
-plot:True # if you wanna plots to display
-estimators:200 # number of trees for the random forest
-max_depth:5 # maximum depth of forest
-criterion:gini #criterion for optimizing forest (best)
-optimize:True #Finds best parameters for random forests, if True, estimators is maxestimators
-#creates various maxdepths between 2 and maxdepths and tries all
-use_identifying_data:False #if want to use ['Age', 'M/F', 'Educ', 'SES']
-use_mri_data:True # if want to use neural network outputs ['PRED_FSL', 'PRED_RAW_1',
-                              #'PRED_RAW_2', 'PRED_RAW_3', 'PRED_T88']
-use_brain_size_data:True # to use ['eTIV', 'ASF', 'nWBV']
-#all use supersedes following parameters (Use use... : True for them to apply)
+plot:True
+estimators:200
+max_depth:5
+criterion:gini
+optimize:True
+use_identifying_data:False
+use_mri_data:True
+use_brain_size_data:True
 age:True
 sex:True
 education:True
@@ -19,4 +15,4 @@ RAW_1:True
 RAW_2:True
 RAW_3:True
 T88:True
-CustomParams:False #allows for choosing which parameters to use using console.
+CustomParams:False

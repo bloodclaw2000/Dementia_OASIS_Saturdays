@@ -8,13 +8,14 @@ import torch.optim as optim
 from torch import nn
 from sklearn.metrics import accuracy_score, confusion_matrix, precision_score, recall_score, ConfusionMatrixDisplay, f1_score
 
-from misc_aux import getDataFrameFromDict
+from misc_aux import getDataFrameFromDict, Logger
 from custom_dataset import CustomTransform, CustomDataset, getDatasetIDS
 from custom_network import Net, ValidationLossEarlyStopping, calculate_validation_loss, reset_model_weights
 from matplotlib import pyplot as plt
 
+import time
 
-def train_nn(obj, folder_path, process_files):
+def train_nn(obj, folder_path, process_files, logpath = None):
     """
      Train the neural network on the files in the folder_path and write the predictions to the output
 
@@ -27,10 +28,19 @@ def train_nn(obj, folder_path, process_files):
     # Iterate through each file
     for file_name in files:
         filepath = os.path.join(folder_path, file_name)
+        if logpath is not None:
+            timeofcreation = time.strftime('%Y_%m_%d_%H_%M_%S')
+            loggingpath = logpath + os.path.splitext(os.path.basename(filepath))[0]+ "_"+ timeofcreation +"_log.txt"
+
+        logger = Logger(file_path = loggingpath)
+        obj.logger = logger
         # Check if the current item is a file (not a folder)
         if os.path.isfile(filepath) and 'output' not in filepath and 'skip' not in filepath and (len(process_files) == 0 or (os.path.splitext(os.path.basename(filepath))[0] in process_files)):
             obj.read_params_from_file_and_set(filepath)
-            print(f"Now calculating predictions for file {filepath}")
+            obj.logger.verbosity = obj.trainParam['verbosity']
+            obj.logger.log(f"Max verbosity level on this run: {obj.trainParam['verbosity']}", obj.trainParam['verbosity'])
+
+            print(f"Now training network from params {filepath}")
             # Get the basename with extension
             file_basename = os.path.basename(filepath)
             file_without_extension = os.path.splitext(file_basename)[0]
@@ -38,7 +48,6 @@ def train_nn(obj, folder_path, process_files):
             with open(os.path.join(folder_path, '{0}_output.txt'.format(file_without_extension)), 'w') as f:
                 # Redirect stdout to the file
                 # sys.stdout = f
-                print(obj.trainParam)
 
                 obj.setTransform([CustomTransform()])
 
@@ -55,7 +64,7 @@ def train_nn(obj, folder_path, process_files):
                 # sys.stdout = sys.__stdout__
 
 
-def predictNN(myNN, imageName, criterion):
+def predictNN(myNN, imageName, criterion, device):
     """
      Funcion que realiza el prediccion a todos los datos del dataframe
 
@@ -74,7 +83,7 @@ def predictNN(myNN, imageName, criterion):
         total_set = torch.load('dataset/'+imageName+'.pth')
 
     total_loader = torch.utils.data.DataLoader(
-        total_set, batch_size=32, shuffle=False)
+        total_set, batch_size=32, shuffle=False, generator=torch.Generator(device=device))
 
     predictions = []
 
@@ -118,7 +127,7 @@ def predictNN(myNN, imageName, criterion):
     return merged_predictions_df
 
 
-def getOutput(folder_path, process_files):
+def getOutput(folder_path, process_files, device):
     """
      Creates a dataframe that contains the output of the neural network. This is used to calculate predictions from NN
 
@@ -146,7 +155,7 @@ def getOutput(folder_path, process_files):
             myNN.eval()
 
             predictions = predictNN(
-                myNN, file_without_extension, 'BCElogitsloss')
+                myNN, file_without_extension, 'BCElogitsloss', device = device)
             predictions['ID'] = predictions['ID'].astype('int32')
             source_df = pd.merge(source_df, predictions, on='ID', how='left')
 
@@ -199,8 +208,8 @@ class Dementia:
             'fclayer1': 120,
             'fclayer2': 'None',
             'criterion_type': 'CrossEntropyLoss',
-            'optimizer': 'Adam'
-
+            'optimizer': 'Adam',
+            'verbosity': 0
         }
         self.valid_params = self.trainParam.copy()
 
@@ -208,26 +217,25 @@ class Dementia:
         # Aunque existe el self.data_set, este total_set se reconstruye a partir de los dataset de los split
         self.total_set = None
         self.total_loader = None
-
+        
         # sets random seed for dataset splitting
         if not seed:
             self.seed = np.random.randint(1, 3e8)
         else:
             self.seed = seed
-
+            
+        self.logger = Logger("somethingwentwrong.txt")
     def setParam(self, key, val):
         try:
             if key not in self.valid_params:
-                print(f'Param {key} does not exist')
-                raise Exception()
-            self.trainParam[key] = val
+                self.logger.log(f'Param {key} does not exist, resetting to default value',0)
+            else:
+                self.trainParam[key] = val
         except Exception as error:
-            print('Param does not exist')
-            print('Resetting to default value')
-
+            pass
     def read_params_from_file_and_set(self, file_path):
-        print(
-            f"Read parameters dictionary at relative location {file_path} and setting them ")
+        self.logger.log(
+            f"Read parameters dictionary at relative location {file_path} and setting them ",0)
 
         with open(file_path, 'r') as file:
             for line in file:
@@ -251,13 +259,13 @@ class Dementia:
                 elif value.replace('.', '', 1).isdigit() and '.' in value:
                     value = float(value)
                 self.setParam(key, value)
-
+                
     def write_dict_to_file(self, file_path):
 
         with open(file_path, 'w') as file:
             for key, value in self.trainParam.items():
                 file.write(f'{key}:{value}\n')
-        print(f"wrote parameters dictionary at relative location {file_path}")
+        self.logger.log(f"wrote parameters dictionary at relative location {file_path}",0)
 
     def setTransform(self, transform):
         self.transform = torchvision.transforms.Compose(transform)
@@ -285,12 +293,13 @@ class Dementia:
             train_size = train_size + 1
             self.train_set, self.validation_set, self.test_set = torch.utils.data.random_split(
                 self.dataset, [train_size, validation_size, test_size], generator=random_generator)
-        # print(self.train_set, self.validation_set, self.test_set)
+        self.logger.log("Train, Validation and Test Sets", 2)
+        self.logger.log(f"{self.train_set}, {self.validation_set}, {self.test_set}",2)
         ids = []
         for i, data in enumerate(self.validation_set, 0):
             inputs, labels, id = data
             ids.append(id)
-        # print(ids)
+        self.logger.log(f"Ids {ids}",2)
         return self.train_set, self.validation_set, self.test_set
 
     def apply_train(self, plateaupatience=2, valpatience=3, min_delta=0, batch_size=10, nepochs=1000):
@@ -316,7 +325,6 @@ class Dementia:
         early_stopper = ValidationLossEarlyStopping(patience=3, min_delta=0)
         plateaupatience = 2  # tries to get out of a plateau and decrease training loss
         counterplateau = 0  # counter for above
-
         # -----------------------------------------------------
 
         # let's run the NET
@@ -338,7 +346,7 @@ class Dementia:
                         countergood += 1
                 self.optimizer.zero_grad()
                 output = self.nn.forward(inputs)
-                # print(output, labels)
+                self.logger.log(f"{output}, {labels}",2)
                 if self.trainParam['criterion_type'] == 'BCElogitsloss':
                     loss = self.criterion(output, labels.float())
                     bce = True
@@ -349,33 +357,32 @@ class Dementia:
                 # scheduler.step()
                 loss.backward()
 
-        #               print(loss.grad)
                 # torch.nn.utils.clip_grad_norm_(my_nn.parameters(), 5)
                 self.optimizer.step()
 
                 running_loss += loss.item()
-            print(f'[{epoch + 1}] tr loss: {running_loss:.3f}')
+            self.logger.log(f'[{epoch + 1}] tr loss: {running_loss:.3f}',1)
             validation_loss = calculate_validation_loss(
                 self.nn, validationloader, self.criterion, bce)
             # scheduler.step(validation_loss)
-            print(f'[{epoch + 1}] va loss: {validation_loss:.3f}')
-            print(counterbad, countergood)
+            self.logger.log(f'[{epoch + 1}] va loss: {validation_loss:.3f}',1)
+            self.logger.log(f"nondemented {counterbad},demented {countergood}",2)
             if early_stopper.early_stop_check(validation_loss):
                 if running_loss < self.trainParam['max_loss_reset']:
                     if counterplateau < plateaupatience:
                         counterplateau += 1
                         early_stopper.reset_counter(val=False)
-                        print("Trying to force it out of a plateau")
+                        self.logger.log("Trying to force it out of a plateau",1)
                     else:
-                        print("couldnt force out of Plateau")
-                        print("STOPPING EARLY BECAUSE NO IMPROVEMENT")
+                        self.logger.log("couldnt force out of Plateau",1)
+                        self.logger.log("STOPPING EARLY BECAUSE NO IMPROVEMENT",1)
                         break
                 else:
-                    print("SHOULD STOP EARLY BUT ERROR TOO HIGH")
+                    self.logger.log("SHOULD STOP EARLY BUT ERROR TOO HIGH",1)
                     for layer in self.nn.children():  # we reset the NN so it can find another minima
                         reset_model_weights(layer)
                     early_stopper.reset_counter()
-                    print("Resetting Lineal Coefficients")
+                    self.logger.log("Resetting Lineal Coefficients",1)
             trainingEpoch_loss.append(running_loss/len(self.train_set))
             validationEpoch_loss.append(validation_loss/len(self.validation_set))
             running_loss = 0.0
@@ -389,8 +396,9 @@ class Dementia:
             image = self.trainParam['image_type']
             number = self.trainParam['image_number']
             plt.title(f'{image},{number} ')
+            plt.savefig(f'plots/{image}_{number}_loss_evolution')
             plt.show()
-        print('Finished Training')
+        self.logger.log(f'Finished Training in {epoch} epochs',0)
         # print(output)
 
     def save(self, filename):
@@ -406,6 +414,9 @@ class Dementia:
              num_workers: number of worker processes to use for training
              nepochs: number of epochs to run the network ( default 10
         """
+        
+        self.logger.log(self.trainParam,1)
+
         if self.trainParam['criterion_type'] == 'BCElogitsloss':
             bce = True
         else:
@@ -427,14 +438,13 @@ class Dementia:
 
         # vamos a conseguir el tamaño de la imagen
         data, label, id = self.train_set[0]
-        # print(data.shape)
+        self.logger.log(data.shape, 2)
         channel = data.shape[0]
         height = data.shape[1]
         width = data.shape[2]
         self.nn = Net(width, height, channel, first_conv_out=self.trainParam['first_conv_outchann'],
                       second_conv_out=self.trainParam['second_conv_outchann'],
                       fclayer1=self.trainParam['fclayer1'], fclayer2=self.trainParam['fclayer2'], BCE=bce)
-        
     #   import torchsummary
     #   torchsummary.summary(self.nn, (3,208,176))
 
@@ -443,7 +453,7 @@ class Dementia:
             self.criterion = nn.CrossEntropyLoss()
         elif self.trainParam['criterion_type'] == 'BCElogitsloss':
             self.criterion = nn.BCEWithLogitsLoss()  # on development this afternoon
-
+            
         self.optimizer = optim.Adam(self.nn.parameters(
         ), lr=self.trainParam['learning_rate'], weight_decay=self.trainParam['weight_decay'])
         # scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
@@ -475,7 +485,7 @@ class Dementia:
 
             # Realizar predicciones utilizando el modelo entrenado
             outputs = self.nn(inputs)
-            # print(outputs)
+            self.logger.log(outputs,2)
             # Calculate loss if needed
             if self.trainParam['criterion_type'] == 'BCElogitsloss':
                 loss = self.criterion(outputs, labels.float())
@@ -487,15 +497,15 @@ class Dementia:
             probabilities = torch.sigmoid(outputs)
             if self.trainParam['criterion_type'] == 'BCElogitsloss':
                 predicted = (torch.sigmoid(outputs) >= 0.5).int()
-                print('PROBABILIDADES TEST:  ', probabilities)
+                self.logger.log(f'PROBABILIDADES TEST: {probabilities}',2)
             else:
                 _, predicted = torch.max(outputs, 1)
             # Agregar las predicciones y las etiquetas reales a las listas
             predictions.extend(predicted.tolist())
             true_labels.extend(labels.tolist())
         
-        print(predictions)
-        print(true_labels)
+        self.logger.log(predictions,2)
+        self.logger.log(true_labels,2)
         # Calcular métricas de rendimiento
         accuracy = accuracy_score(true_labels, predictions)
 
@@ -508,11 +518,11 @@ class Dementia:
         average_loss = total_loss / total_samples
 
         # Imprimir las métricas de rendimiento
-        print("Accuracy: {0}".format(accuracy))
-        print("Precision: {0}".format(precision))
-        print("Recall: {0}".format(recall))
-        print("1-score: {0}".format(f1))
-        print("Average Loss: {0}".format(average_loss))
+        self.logger.log("Accuracy: {0}".format(accuracy),0)
+        self.logger.log("Precision: {0}".format(precision),0)
+        self.logger.log("Recall: {0}".format(recall),0)
+        self.logger.log("1-score: {0}".format(f1),0)
+        self.logger.log("Average Loss: {0}".format(average_loss),0)
 
         return true_labels, predictions
     def calculatetestloss(self):
@@ -535,7 +545,8 @@ class Dementia:
 
             # Realizar predicciones utilizando el modelo entrenado
             outputs = self.nn(inputs)
-            # print(outputs)
+            self.logger.log("outputs of test",2)
+            self.logger.log(outputs,2)
             # Calculate loss if needed
             if self.trainParam['criterion_type'] == 'BCElogitsloss':
                 loss = self.criterion(outputs, labels.float())
@@ -601,13 +612,11 @@ class Dementia:
         matrix([0, 1, 0, 1], [1, 1, 0, 0], plot=True)
         """
 
-        from sklearn.metrics import confusion_matrix
-
         # Compute confusion matrix
         conf_matrix = confusion_matrix(labels, predicted)
 
-        print("Confusion Matrix:")
-        print(conf_matrix)
+        self.logger.log("Confusion Matrix:",1)
+        self.logger.log(conf_matrix,1)
 
         import seaborn as sns
         import matplotlib.pyplot as plt
@@ -619,4 +628,9 @@ class Dementia:
             plt.xlabel('Predicted Labels')
             plt.ylabel('True Labels')
             plt.title('Confusion Matrix')
+            image = self.trainParam['image_type']
+            number = self.trainParam['image_number']
+            plt.savefig(f'plots/{image}_{number}_confusion_matrix')
+
+            plt.savefig("plots/")
             plt.show()

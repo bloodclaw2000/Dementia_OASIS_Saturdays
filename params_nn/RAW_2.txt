@@ -1,5 +1,4 @@
 #this is a comment
-invalid_key:idk #this is also a comment if not valid key it skips it
 image_type:RAW #Type of MRI measurement  (FSL_SEG, T88_111,RAW, etc.) 
 image_number:2 #number of measurement (1 for everything except RAW), RAW 1-3
 patience_validation:3 #how long does it wait if validation los doesn't decrease
@@ -19,3 +18,4 @@ fclayer2:None # If not None applies an extra relu function to increase nonlinear
 criterion_type:BCElogitsloss # BCElogitsloss is the probability outputting criterion, CrossEntropyLoss is the categories (0 or 1) outputting criterion
 #Changes some neural network architecture and also might give different results. CrossEntropy kept for backwards compatibility
 optimizer:Adam #The optimizer to use, does nothing right now
+verbosity:1

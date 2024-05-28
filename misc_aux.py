@@ -36,3 +36,14 @@ def decompress_pickle(file):
     data = bz2.BZ2File(file, 'rb')
     data = cPickle.load(data)
     return data
+
+class Logger:
+    def __init__(self, file_path=None):
+        self.file_path = file_path
+        self.verbosity = 1
+    def log(self, message, level):
+        if self.verbosity  >= level:
+            print(message)
+            if self.file_path is not None:
+                with open(self.file_path, 'a') as file:
+                    file.write(f"{level}: {message}\n")
