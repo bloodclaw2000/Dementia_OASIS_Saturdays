@@ -116,7 +116,7 @@ obj.setParam('image_number', 1)
 time1 = time.time()
 # train(obj,'params/',['T88'])
 # train(obj,'params/',['T88','FSL'])
-#train_nn(obj, 'params_nn/', ['T88', 'FSL', 'RAW_1', 'RAW_2', 'RAW_3'],logpath = logpath)
+train_nn(obj, 'params_nn/', ['T88', 'FSL', 'RAW_1', 'RAW_2', 'RAW_3'],logpath = logpath)
 print(f"Normal network running time",time.time()- time1, 's')
 #optimized neural network class
 
