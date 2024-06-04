@@ -244,15 +244,22 @@ def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_pat
             
             #study = optuna.create_study(direction="minimize")  # 'minimize' because objective function is returning loss
             failedtrials = False
+            failed = 0
+            
             #fig = optuna.visualization.matplotlib.plot_timeline(study)
             for trial in study.trials:
                 if trial.state == optuna.trial.TrialState.FAIL: 
                     study.enqueue_trial(trial.params)
+                    failed += 1
                     failedtrials = True
+            
             if failedtrials:
-                study.optimize(objective,timeout = timeout)
+                print(f"now running {failed} trials that failed to finish before")
+                remaining = n_trials - len(study.trials) + 1
+                print(f"now running {remaining} trials that remained from before")
+                study.optimize(objective,n_trials = remaining, timeout = timeout, show_progress_bar=True)
             else:
-                study.optimize(objective, n_trials=n_trials, timeout = timeout)
+                study.optimize(objective, n_trials=n_trials, timeout = timeout, show_progress_bar=True)
             
             pruned_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.PRUNED]
             complete_trials = [t for t in study.trials if t.state == optuna.trial.TrialState.COMPLETE]

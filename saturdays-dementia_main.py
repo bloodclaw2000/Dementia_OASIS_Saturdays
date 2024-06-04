@@ -37,7 +37,7 @@ from hyperparameter_optimization import get_optimal_params, find_hyperparams_opt
 import time
 import plotly
 """
-Version 2.0.1 of Project
+Version 2.0.2 of Project
 28/05/2024
 """
 torch.multiprocessing.set_start_method(
@@ -154,7 +154,7 @@ parameter_ranges = {
 if os.path.exists('tmp_nn.p'):
     obj = pet_load('tmp_nn.p')
     print(f"USing old unfinished dataset split with seed {obj.seed}")
-find_hyperparams_optuna(obj, 'params_nn/','hyperparams/','studies/','dataset/', ['RAW_1'],logpath = logpath, n_trials= 2)
+find_hyperparams_optuna(obj, 'params_nn/','hyperparams/','studies/','dataset/', ['RAW_2'],logpath = logpath, n_trials= 10)
 visualizeresults('studies/RAW_1.pbz2')
 
 #train_nn_auto(obj, 'params_nn/', ['FSL'],logpath = logpath,experiments=parameter_ranges,max_iterations_ximage=10)
