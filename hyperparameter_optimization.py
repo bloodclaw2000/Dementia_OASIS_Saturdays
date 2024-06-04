@@ -167,7 +167,7 @@ def parsehyperparams(trial, hyperparams, baseparams):
     #baseparams['verbosity'] = 0
     return baseparams
 
-def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_path, process_files, logpath=None, n_trials = 200, timeout = 30000): #8 horas max por material):
+def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_path,dataset_path, process_files, logpath=None, n_trials = 200, timeout = 30000): #8 horas max por material):
     
     files = get_all_parameter_files(hyperparams_path, process_files)
     hyperfiles = get_all_parameter_files(hyperparams_path, process_files, hyper = True)
@@ -275,7 +275,7 @@ def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_pat
             df_results = study.trials_dataframe(attrs=("number", "value", "params", "state"))
             
             df_results.to_csv('{0}.csv'.format(
-                file_without_extension), index=False)
+                os.path.join(dataset_path,file_without_extension)), index=False)
             
             #now we save to a file for posterior analysis,
             compressed_pickle(study, os.path.join(save_study_path, file_without_extension))
