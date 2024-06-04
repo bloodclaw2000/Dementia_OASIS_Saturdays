@@ -19,4 +19,4 @@ fclayer2:None # If not None applies an extra relu function to increase nonlinear
 criterion_type:BCElogitsloss # BCElogitsloss is the probability outputting criterion, CrossEntropyLoss is the categories (0 or 1) outputting criterion
 #Changes some neural network architecture and also might give different results. CrossEntropy kept for backwards compatibility
 optimizer:Adam #The optimizer to use, does nothing right now
-verbosity:1 #verbosity level. = 0 only prints basic info in NN, 1 prints losses related info, 2 prints shapes of tensors and most info 
+verbosity:1

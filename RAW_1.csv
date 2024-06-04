@@ -1,0 +1,3 @@
+number,value,params_batch_size,params_delta_min,params_fclayer1,params_fclayer2,params_first_conv_outchann,params_learning_rate,params_max_loss_reset,params_second_conv_outchann,params_split_size,params_weight_decay,state
+0,0.010820309864357114,10,0,150,30,10,2.9022073667213318e-05,3,16,0.75,0.03393779604655188,COMPLETE
+1,0.07206092228492102,30,0,210,30,6,0.00030004508702367183,9,24,0.75,0.019252948427428418,COMPLETE

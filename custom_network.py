@@ -142,7 +142,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(n, fclayer1)  # first fully connected layer
         # initialize random weigths
         torch.nn.init.xavier_uniform_(self.fc1.weight)
-        if fclayer2 != 'None':
+        if fclayer2 != 'None' or fclayer2 != 0:
             self.fc2 = nn.ReLU()
             if BCE:
                 # second fully connected layer

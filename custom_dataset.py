@@ -1,6 +1,6 @@
 import torch
 import pandas as pd
-import matplotlib.pyplot as plt
+
 from functions_transform import fft_transform, border_transform
 
 
@@ -15,11 +15,21 @@ def getDatasetIDS(dataset, subset):
      Returns: 
           pandas. DataFrame with the
     """
+
+        # for i, data in enumerate(validation_set, 0):
+        #     inputs, labels, id = data
+        #     ids.append(id)    
     ids = []
-    for data in dataset:
-        inputs, labels, id = data
-        ids.append([id, subset])
+    # for data in dataset:
+    #     inputs, labels, id = data
+    #     ids.append([id, subset])
+    # for i, data in enumerate(dataset, 0):
+    #     inputs, labels, id = data
+    #     ids.append(id)        
     # ids=np.array(ids)
+    for i in range(len(dataset)):  
+        inputs, labels, id = dataset[i]
+        ids.append([id, subset])  
     return pd.DataFrame(ids, columns=['ID', 'SUBSET'])
 
 
@@ -50,15 +60,6 @@ class CustomTransform(object):
         image2 = border_transform(image)
 
         # Returning the two parts of the image
-        """plt.figure()
-        fig, ax = plt.subplots(1, 3, figsize=(15, 5))
-        ax[0].imshow(image)
-        ax[0].set_title('Original MRI',)
-        ax[1].imshow(image1)
-        ax[1].set_title('fft Transform')
-        ax[2].imshow(image2)
-        ax[2].set_title('edges')
-        plt.show()"""
         return torch.tensor(image, dtype=torch.float32), torch.tensor(image1, dtype=torch.float32), torch.tensor(image2, dtype=torch.float32)
 
 
