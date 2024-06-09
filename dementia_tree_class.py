@@ -165,7 +165,7 @@ class Customtree:
 
         if self.trainParam['use_brain_size_data'] == 'False':
             paramsdrop.append(['eTIV', 'ASF', 'nWBV'])
-        if self.trainParam['CustomParams'] == 'True':
+        if 'True' in self.trainParam['CustomParams']:
             user_inputs = []
             possible_inputs = ['ID', 'SES', 'CDR', 'Delay', 'USE', 'Hand', 'Age',
                                'M/F', 'MMSE', 'eTIV', 'ASF', 'nWBV', 'Educ', 'PRED_FSL', 'PRED_RAW_1', 'PRED_RAW_2', 'PRED_RAW_3', 'PRED_T88']
@@ -245,7 +245,7 @@ class Customtree:
             feature_importances = pd.Series(
                 clf.feature_importances_, index=X_train.columns).sort_values(ascending=False)
             # Plot a simple bar chart
-            feature_importances.plot.bar()
+            feature_importances.plot.bar(color="royalblue")
             plt.savefig('plots/feature_importance',bbox_inches='tight')
             plt.show()
 

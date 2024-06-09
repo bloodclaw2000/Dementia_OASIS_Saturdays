@@ -2,8 +2,8 @@
 # if extra_param is log, step is skipped
 # still not best iterations but honestly getting harder to parse each time
 
-#patience_validation: 3
-#patience_plateau: 3
+patience_validation: 0, 3, 1
+patience_plateau: 0. 3, 1
 delta_min: 0, 0.1, 1, log
 batch_size: 10, 50, 10
 split_size: 0.7, 0.8 , 0.05

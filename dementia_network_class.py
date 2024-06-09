@@ -743,7 +743,7 @@ class Dementia:
 
         return merged_df, total_set
 
-    def matrix(self, labels, predicted, plot=False):
+    def matrix(self, labels, predicted, plot=True):
         """
         Compute the confusion matrix and optionally plot it.
 
@@ -763,7 +763,7 @@ class Dementia:
 
         # Compute confusion matrix
         conf_matrix = confusion_matrix(labels, predicted)
-
+        print(conf_matrix)
         self.logger.log("Confusion Matrix:", 1)
         self.logger.log(conf_matrix, 1)
 
@@ -772,14 +772,19 @@ class Dementia:
 
         if plot:
             # Plot confusion matrix
+            
+            #disp = ConfusionMatrixDisplay(confusion_matrix=conf_matrix) 
+            #disp.grid(False)
+            print("uyy")
+
             plt.figure(figsize=(8, 6))
-            sns.heatmap(conf_matrix, annot=True, fmt='d', cmap='Blues')
-            plt.xlabel('Predicted Labels')
-            plt.ylabel('True Labels')
-            plt.title('Confusion Matrix')
+            sns.heatmap(conf_matrix, annot=True, fmt='d',cmap= "viridis" )
+            #disp.set_xlabel('Predicted Labels')
+            #disp.set_ylabel('True Labels')
+            #disp.set_title('Confusion Matrix')
             image = self.trainParam['image_type']
             number = self.trainParam['image_number']
             plt.savefig(f'plots/{image}_{number}_confusion_matrix')
 
-            plt.savefig("plots/")
+            #plt.savefig("plots/")
             plt.show()

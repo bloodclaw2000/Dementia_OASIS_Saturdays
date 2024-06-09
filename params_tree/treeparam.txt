@@ -5,7 +5,7 @@ criterion:gini
 optimize:True
 use_identifying_data:False
 use_mri_data:True
-use_brain_size_data:True
+use_brain_size_data:False
 age:True
 sex:True
 education:True

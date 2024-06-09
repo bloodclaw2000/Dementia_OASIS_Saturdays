@@ -37,32 +37,26 @@ def get_optimal_params(df_results):
     df_results['average_loss'] = 1 - \
         scaler.fit_transform(df_results[['average_loss']])
 
-    def combined_metric(row, alpha, beta, gamma, delta, epsilon):
+    def combined_metric(row, alpha, beta, gamma):
         return (alpha * row['accuracy'] +
                 beta * row['precision'] +
-                gamma * row['recall'] +
-                delta * row['f1'] +
-                epsilon * row['average_loss'])
+                gamma * row['recall'])
 
     # Define the objective function for Optuna
     def objective(trial):
         alpha = trial.suggest_float('alpha', 0.0, 1.0)
         beta = trial.suggest_float('beta', 0.0, 1.0)
         gamma = trial.suggest_float('gamma', 0.0, 1.0)
-        delta = trial.suggest_float('delta', 0.0, 1.0)
-        epsilon = trial.suggest_float('epsilon', 0.0, 1.0)
-
+        
         # Normalize the sum of weights to 1
-        total_weight = alpha + beta + gamma + delta + epsilon
+        total_weight = alpha + beta + gamma
         alpha /= total_weight
         beta /= total_weight
         gamma /= total_weight
-        delta /= total_weight
-        epsilon /= total_weight
 
         # Apply the combined metric function to the DataFrame
         df_results['combined_score'] = df_results.apply(
-            lambda row: combined_metric(row, alpha, beta, gamma, delta, epsilon), axis=1)
+            lambda row: combined_metric(row, alpha, beta, gamma), axis=1)
 
         # Find the highest combined score
         # best_model_idx = df_results['combined_score'].idxmax()
@@ -71,10 +65,10 @@ def get_optimal_params(df_results):
         best_combined_score = df_results['combined_score'].max()
 
         # Return the negative of the best combined score because Optuna minimizes the objective function
-        return -best_combined_score
+        return best_combined_score
 
     # Run the Optuna study
-    study = optuna.create_study(direction='minimize')
+    study = optuna.create_study(direction='maximize')
     study.optimize(objective, n_trials=100)
 
     # Get the best parameters
@@ -82,17 +76,16 @@ def get_optimal_params(df_results):
     print("Best parameters:", best_params)
 
     # Use the best parameters to find the best model
-    alpha, beta, gamma, delta, epsilon = best_params['alpha'], best_params[
-        'beta'], best_params['gamma'], best_params['delta'], best_params['epsilon']
-    total_weight = alpha + beta + gamma + delta + epsilon
+    alpha, beta, gamma = best_params['alpha'], best_params[
+        'beta'], best_params['gamma']
+    total_weight = alpha + beta + gamma 
     alpha /= total_weight
     beta /= total_weight
     gamma /= total_weight
-    delta /= total_weight
-    epsilon /= total_weight
+    
 
     df_results['combined_score'] = df_results.apply(
-        lambda row: combined_metric(row, alpha, beta, gamma, delta, epsilon), axis=1)
+        lambda row: combined_metric(row, alpha, beta, gamma), axis=1)
 
     df_results['rank'] = df_results['combined_score'].rank(ascending=False)
 
@@ -213,8 +206,9 @@ def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_pat
 
             print(opt_hyperparamters)
             results = []
-
+            
             def objective(trial):
+                
                 #back to defaults
                 obj.read_params_from_file_and_set(os.path.join(base_folder_path,file_name), printea = False)
                 obj.logger.verbosity = obj.trainParam['verbosity']
@@ -226,6 +220,7 @@ def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_pat
                 obj.setTransform([CustomTransform()])
                 loss = obj.train()
                 labels, predicted, partial_results = obj.test()
+                 
 
                 return loss
             #sampler = optuna.samplers.CmaEsSampler()
@@ -287,6 +282,7 @@ def find_hyperparams_optuna(obj,base_folder_path,hyperparams_path,save_study_pat
             #now we save to a file for posterior analysis,
             compressed_pickle(study, os.path.join(save_study_path, file_without_extension))
             os.remove('tmp_nn.p')
+            time.sleep(300)
             #os.remove(f"{file_without_extension}-optuna-journal.log")
         else:
             print(f"Matching file for {file_name} not found in folder2.")
@@ -326,6 +322,7 @@ def visualizeresults (study_path):
     if not os.path.exists(f"plots/{file_basename}"):
         os.makedirs(f"plots/{file_basename}")
     optimization_history = optuna.visualization.matplotlib.plot_optimization_history(study)
+    optimization_history.set_yscale('log')
     plt.savefig(f"plots/{file_basename}/optimization_history.jpg")
     plt.show()
     # Visualize parameter importances
